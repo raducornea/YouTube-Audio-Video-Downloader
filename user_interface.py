@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import filedialog
 
 import processing_functions
 
@@ -10,9 +11,16 @@ class Interface:
     label_complete = None
     label_already_exists = None
     link = None
+    path = None
     entry_link = None
+    entry_path = None
     button_mp3 = None
     button_mp4 = None
+    button_browse = None
+    label_path = None
+    #todo
+    #  read absolute_path from a file and place it if it's null in the entry at the beginning
+    absolute_path = None
 
     # initializer for variables in interface
     @classmethod
@@ -24,11 +32,11 @@ class Interface:
         cls.window = Tk()
 
         # labels
-        cls.label_title = Label(cls.window,
-                                text='YouTube Video Downloader',
-                                font='calibri 20 bold')
         cls.label_link = Label(cls.window,
                                text='Enter Your Link:',
+                               font='calibri 17 bold')
+        cls.label_path = Label(cls.window,
+                               text='Enter Your Path or Browse it:',
                                font='calibri 17 bold')
         cls.label_complete = Label(cls.window,
                                    text='Download Complete!',
@@ -37,11 +45,16 @@ class Interface:
                                          text='The file already exists.',
                                          font='arial 15')
 
-        # entry
+        # entries
         cls.link = StringVar()  # text for entry
         cls.entry_link = Entry(cls.window,
                                width=40,
                                textvariable=cls.link,
+                               font='arial 15 italic')
+        cls.path = StringVar()
+        cls.entry_path = Entry(cls.window,
+                               width=33,
+                               textvariable=cls.path,
                                font='arial 15 italic')
 
         # buttons
@@ -57,6 +70,12 @@ class Interface:
                                 bg='yellow',
                                 pady=20,
                                 command=cls.download_mp4)
+        cls.button_browse = Button(cls.window,
+                                   text='Browse',
+                                   font='arial 12 bold',
+                                   bg='light grey',
+                                   pady=1,
+                                   command=cls.browse)
 
     @classmethod
     def message_complete(cls):
@@ -82,6 +101,19 @@ class Interface:
         processing_functions.Processor.downloader_mp4()
 
     @classmethod
+    def browse(cls):
+        folder_selected = filedialog.askdirectory()
+        print(folder_selected)
+
+        if folder_selected != "":
+            cls.write_entry_path(folder_selected)
+
+    @classmethod
+    def write_entry_path(cls, text):
+        cls.entry_path.delete(0, END)
+        cls.entry_path.insert(0, text)
+
+    @classmethod
     def get_link(cls):
         return cls.link
 
@@ -89,20 +121,22 @@ class Interface:
     @classmethod
     def open_application(cls):
         # window attributes
-        cls.window.geometry('500x300')
+        cls.window.geometry('500x350')
         cls.window.resizable(0, 0)  # (width, height)
-        cls.window.title("YTB VD")
+        cls.window.title("YouTube Video Downloader")
 
         # label attributes
-        cls.label_title.pack()
-        cls.label_link.place(x=173, y=50)
+        cls.label_link.place(x=25, y=30)
+        cls.label_path.place(x=25, y=120)
 
         # entry attributes
-        cls.entry_link.place(x=28, y=90)
+        cls.entry_link.place(x=28, y=70)
+        cls.entry_path.place(x=28, y=160)
 
         # button attributes
-        cls.button_mp3.place(x=50, y=130)
-        cls.button_mp4.place(x=270, y=130)
+        cls.button_mp3.place(x=50, y=230)
+        cls.button_mp4.place(x=270, y=230)
+        cls.button_browse.place(x=400, y=156)
 
         # loop window
         cls.window.mainloop()
