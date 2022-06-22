@@ -80,12 +80,12 @@ class Interface:
     @classmethod
     def message_complete(cls):
         cls.forget_all_messages()
-        cls.label_complete.place(x=160, y=230)
+        cls.label_complete.place(x=160, y=195)
 
     @classmethod
     def message_already_exists(cls):
         cls.forget_all_messages()
-        cls.label_already_exists.place(x=155, y=230)
+        cls.label_already_exists.place(x=155, y=195)
 
     @classmethod
     def forget_all_messages(cls):
@@ -106,6 +106,7 @@ class Interface:
         print(folder_selected)
 
         if folder_selected != "":
+            processing_functions.Processor.set_path(folder_selected)
             cls.write_entry_path(folder_selected)
 
     @classmethod

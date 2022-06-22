@@ -1,6 +1,6 @@
 import os
 
-import moviepy.editor as mp
+from moviepy.editor import *
 from pytube import YouTube
 from pathlib import Path
 
@@ -15,16 +15,43 @@ class Processor:
         cls.downloads_path = str(Path.home()/"Downloads")
 
     @classmethod
-    def combine_audio(cls, video_name, audio_name, out_name):
-        clip = mp.VideoFileClip(video_name).subclip()
-        clip.write_videofile(out_name, audio=audio_name)
+    def set_path(cls, path):
+        cls.downloads_path = path
 
     @classmethod
-    def process_audio(cls, url, current_audio_path):
-        out_file = url.streams.filter(mime_type='audio/mp4').first().download(output_path=current_audio_path)
-        # base, ext = os.path.splitext(out_file)
-        # new_file = f"{base}.mp3"
-        # os.rename(out_file, new_file)
+    # change format to mp3
+    def process_audio(cls, title):
+        os.chdir(cls.downloads_path)
+
+        clip = AudioFileClip(f"{title}.mp4")
+        clip.write_audiofile(f"{title}.mp3")
+        clip.close()
+
+        user_interface.Interface.message_complete()
+
+    @classmethod
+    def downloader_mp3(cls):
+        link = str(user_interface.Interface.get_link().get())
+        url = YouTube(link)
+
+        audio = url.streams.get_audio_only()
+        title = audio.title
+
+        if os.path.exists(f"{cls.downloads_path}\\{title}.mp3"):
+            user_interface.Interface.message_already_exists()
+            return
+
+        if os.path.exists(f"{cls.downloads_path}\\{title}.mp4"):
+            cls.process_audio(title)
+        else:
+            url.streams.filter(mime_type='audio/mp4').first().download(output_path=cls.downloads_path)
+            cls.process_audio(title)
+            os.remove(f"{cls.downloads_path}\\{title}.mp4")
+
+    @classmethod
+    def combine_audio(cls, video_name, audio_name, out_name):
+        clip = VideoFileClip(video_name).subclip()
+        clip.write_videofile(out_name, audio=audio_name)
 
     @classmethod
     def process_video(cls, url, possible_existing_mp4, current_video_path, title):
@@ -36,22 +63,6 @@ class Processor:
         os.remove(possible_existing_mp4)
         os.rename(current_video_path + '\\' + 'pleasedonotnameyourfileslikethisjpxproasdf.mp4',
                   current_video_path + '\\' + title)
-
-    @classmethod
-    def downloader_mp3(cls):
-        link = str(user_interface.Interface.get_link().get())
-        url = YouTube(link)
-
-        # video = url.streams.filter(only_audio=True).first()  # filters video only by audio and mp3
-        audio = url.streams.get_audio_only()
-
-        # before downloading, check if it exists already. if so -> do nothing
-        title = audio.title
-        current_audio_path = os.getcwd()
-        possible_existing_mp3 = f"{current_audio_path}\\{title}.mp3"
-
-        cls.process_audio(url, current_audio_path)
-        user_interface.Interface.message_complete()
 
     @classmethod
     def downloader_mp4(cls):
