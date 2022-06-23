@@ -9,10 +9,12 @@ import user_interface
 
 class Processor:
     downloads_path = None
+    project_path = None
 
     @classmethod
     def __init__(cls):
         cls.downloads_path = str(Path.home()/"Downloads")
+        cls.project_path = os.getcwd()
 
     @classmethod
     def set_path(cls, path):
@@ -21,9 +23,10 @@ class Processor:
     @classmethod
     # change format to mp3
     def process_audio(cls, title):
-        os.chdir(cls.downloads_path)
-
+        os.chdir(cls.project_path)
         clip = AudioFileClip(f"{title}.mp4")
+
+        os.chdir(cls.downloads_path)
         clip.write_audiofile(f"{title}.mp3")
         clip.close()
 
@@ -31,22 +34,21 @@ class Processor:
 
     @classmethod
     def downloader_mp3(cls):
-        link = str(user_interface.Interface.get_link().get())
+        link = str(user_interface.Interface.get_link())
         url = YouTube(link)
 
         audio = url.streams.get_audio_only()
         title = audio.title
 
-        if os.path.exists(f"{cls.downloads_path}\\{title}.mp3"):
+        mp3_path = f"{cls.downloads_path}\\{title}.mp3"
+        mp4_path = f"{cls.project_path}\\{title}.mp4"
+        if os.path.exists(mp3_path):
             user_interface.Interface.message_already_exists()
             return
 
-        if os.path.exists(f"{cls.downloads_path}\\{title}.mp4"):
-            cls.process_audio(title)
-        else:
-            url.streams.filter(mime_type='audio/mp4').first().download(output_path=cls.downloads_path)
-            cls.process_audio(title)
-            os.remove(f"{cls.downloads_path}\\{title}.mp4")
+        url.streams.filter(mime_type='audio/mp4').first().download(output_path=cls.project_path)
+        cls.process_audio(title)
+        os.remove(mp4_path)
 
     @classmethod
     def combine_audio(cls, video_name, audio_name, out_name):
@@ -67,7 +69,7 @@ class Processor:
     @classmethod
     def downloader_mp4(cls):
         link = user_interface.Interface.get_link()
-        url = YouTube(str(link.get()))
+        url = YouTube(str(link))
 
         title = str(url.title) + '.mp4'
 

@@ -1,6 +1,9 @@
+import multiprocessing
+import os
 from tkinter import *
 from tkinter import filedialog
-
+from multiprocessing import Process
+import re
 import processing_functions
 
 
@@ -10,6 +13,8 @@ class Interface:
     label_link = None
     label_complete = None
     label_already_exists = None
+    label_path_corrupted = None
+    label_link_corrupted = None
     link = None
     path = None
     entry_link = None
@@ -18,7 +23,7 @@ class Interface:
     button_mp4 = None
     button_browse = None
     label_path = None
-    #todo
+    # todo
     #  read absolute_path from a file and place it if it's null in the entry at the beginning
     absolute_path = None
 
@@ -43,6 +48,12 @@ class Interface:
                                    font='arial 15')
         cls.label_already_exists = Label(cls.window,
                                          text='The file already exists.',
+                                         font='arial 15')
+        cls.label_path_corrupted = Label(cls.window,
+                                         text='Choose a valid path!',
+                                         font='arial 15')
+        cls.label_link_corrupted = Label(cls.window,
+                                         text='Choose a valid link!',
                                          font='arial 15')
 
         # entries
@@ -77,6 +88,12 @@ class Interface:
                                    pady=1,
                                    command=cls.browse)
 
+        with open(f"{processing_functions.Processor.project_path}\\Files\\path.txt", "r+") as path_file:
+            line = path_file.readlines()[0]
+            if line != "":
+                cls.write_entry_path(line)
+                processing_functions.Processor.set_path(line)
+
     @classmethod
     def message_complete(cls):
         cls.forget_all_messages()
@@ -91,10 +108,35 @@ class Interface:
     def forget_all_messages(cls):
         cls.label_complete.place_forget()
         cls.label_already_exists.place_forget()
+        cls.label_link_corrupted.place_forget()
+        cls.label_path_corrupted.place_forget()
+
+    @classmethod
+    def entry_cheks(cls):
+        entry_path = cls.entry_path.get()
+        entry_link = cls.entry_link.get()
+
+        youtube_regex = (
+            r'(https?://)?(www\.)?'
+            '(youtube|youtu|youtube-nocookie)\.(com|be)/'
+            '(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})')
+        youtube_regex_match = re.match(youtube_regex, entry_link)
+        if not youtube_regex_match:
+            cls.forget_all_messages()
+            cls.label_link_corrupted.place(x=160, y=195)
+            return False
+
+        if not os.path.exists(entry_path):
+            cls.forget_all_messages()
+            cls.label_path_corrupted.place(x=160, y=195)
+            return False
+
+        return True
 
     @classmethod
     def download_mp3(cls):
-        processing_functions.Processor.downloader_mp3()
+        if cls.entry_cheks():
+            processing_functions.Processor.downloader_mp3()
 
     @classmethod
     def download_mp4(cls):
@@ -114,9 +156,14 @@ class Interface:
         cls.entry_path.delete(0, END)
         cls.entry_path.insert(0, text)
 
+        with open(f"{processing_functions.Processor.project_path}\\Files\\path.txt", "r+") as path_file:
+            path_file.seek(0)
+            path_file.truncate()
+            path_file.write(text)
+
     @classmethod
     def get_link(cls):
-        return cls.link
+        return cls.link.get()
 
     # on application start
     @classmethod
