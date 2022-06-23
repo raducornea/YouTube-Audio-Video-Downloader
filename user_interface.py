@@ -1,8 +1,6 @@
-import multiprocessing
 import os
 from tkinter import *
 from tkinter import filedialog
-from multiprocessing import Process
 import re
 import processing_functions
 
@@ -23,9 +21,6 @@ class Interface:
     button_mp4 = None
     button_browse = None
     label_path = None
-    # todo
-    #  read absolute_path from a file and place it if it's null in the entry at the beginning
-    absolute_path = None
 
     # initializer for variables in interface
     @classmethod
@@ -88,7 +83,7 @@ class Interface:
                                    pady=1,
                                    command=cls.browse)
 
-        with open(f"{processing_functions.Processor.project_path}\\Files\\path.txt", "r+") as path_file:
+        with open(f"{processing_functions.Processor.project_path}\\path.txt", "r+") as path_file:
             line = path_file.readlines()[0]
             if line != "":
                 cls.write_entry_path(line)
@@ -140,7 +135,8 @@ class Interface:
 
     @classmethod
     def download_mp4(cls):
-        processing_functions.Processor.downloader_mp4()
+        if cls.entry_cheks():
+            processing_functions.Processor.downloader_mp4()
 
     @classmethod
     def browse(cls):
@@ -156,7 +152,7 @@ class Interface:
         cls.entry_path.delete(0, END)
         cls.entry_path.insert(0, text)
 
-        with open(f"{processing_functions.Processor.project_path}\\Files\\path.txt", "r+") as path_file:
+        with open(f"{processing_functions.Processor.project_path}\\path.txt", "r+") as path_file:
             path_file.seek(0)
             path_file.truncate()
             path_file.write(text)

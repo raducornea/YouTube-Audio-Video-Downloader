@@ -1,10 +1,9 @@
-import os
-
 from moviepy.editor import *
 from pytube import YouTube
 from pathlib import Path
 
 import user_interface
+import shutil
 
 
 class Processor:
@@ -13,7 +12,7 @@ class Processor:
 
     @classmethod
     def __init__(cls):
-        cls.downloads_path = str(Path.home()/"Downloads")
+        cls.downloads_path = str(Path.home() / "Downloads")
         cls.project_path = os.getcwd()
 
     @classmethod
@@ -56,38 +55,41 @@ class Processor:
         clip.write_videofile(out_name, audio=audio_name)
 
     @classmethod
-    def process_video(cls, url, possible_existing_mp4, current_video_path, title):
+    def process_video(cls, url):
         video = url.streams.filter(mime_type='video/mp4').order_by('resolution').desc().first()
-        video.download(output_path=current_video_path)
+        video.download(output_path=cls.project_path)
 
-        print(video.title)
-        cls.combine_audio(video.title + '.mp4', video.title + '.mp3', 'pleasedonotnameyourfileslikethisjpxproasdf.mp4')
-        os.remove(possible_existing_mp4)
-        os.rename(current_video_path + '\\' + 'pleasedonotnameyourfileslikethisjpxproasdf.mp4',
-                  current_video_path + '\\' + title)
+        mp4_clip = f"{video.title}.mp4"
+        mp3_clip = f"{video.title}.mp3"
+        final_clip = f"{video.title}_auxiliary.mp4"
+        cls.combine_audio(mp4_clip, mp3_clip, final_clip)
+
+        source = cls.project_path + '\\' + final_clip
+        destination = cls.downloads_path + '\\' + mp4_clip
+        shutil.move(source, destination)
+
+        os.remove(cls.project_path + '\\' + mp4_clip)
 
     @classmethod
     def downloader_mp4(cls):
         link = user_interface.Interface.get_link()
         url = YouTube(str(link))
+        title = str(url.title)
 
-        title = str(url.title) + '.mp4'
-
-        current_video_path = os.getcwd()
-        possible_existing_mp4 = f"{current_video_path}\\{title}"
-        if os.path.isfile(f"{cls.downloads_path}\\{title}.mp4"):
+        mp3_path = f"{cls.project_path}\\{title}.mp3"
+        mp4_path = f"{cls.downloads_path}\\{title}.mp4"
+        if os.path.exists(mp4_path):
             user_interface.Interface.message_already_exists()
-        else:
-            # before downloading, check if mp3 exists already
-            possible_existing_mp3 = current_video_path + '\\' + str(url.title) + '.mp3'
-            if os.path.isfile(cls.downloads_path + '\\' + title + '.mp3'):
-                # a) it does -> combine it without removing it
-                cls.process_video(url, possible_existing_mp4, current_video_path, title)
-            else:
-                # b) it doesn't -> download it, combine it, then remove it
-                cls.downloader_mp3()
-                cls.process_video(url, possible_existing_mp4, current_video_path, title)
-                os.remove(possible_existing_mp3)
-            os.replace(possible_existing_mp4, cls.downloads_path + '\\' + title + '.mp4')
+            return
 
-            user_interface.Interface.message_complete()
+        # trick the program to download the mp3 in project
+        actual_download_path = cls.downloads_path
+        cls.set_path(cls.project_path)
+        cls.downloader_mp3()
+
+        # set os path back to normal
+        cls.set_path(actual_download_path)
+        cls.process_video(url)
+        os.remove(mp3_path)
+
+        user_interface.Interface.message_complete()
