@@ -41,13 +41,15 @@ class Processor:
         audio = url.streams.get_audio_only()
         title = audio.title
 
-        mp3_path = f"{cls.downloads_path}\\{title}.mp3"
-        mp4_path = f"{cls.project_path}\\{title}.mp4"
+        mp3_file = f"{title}.mp3"
+        mp4_file = f"{title}.mp4"
+        mp3_path = f"{cls.downloads_path}\\{mp3_file}"
+        mp4_path = f"{cls.project_path}\\{mp4_file}"
         if os.path.exists(mp3_path):
             user_interface.Interface.message_already_exists()
             return
 
-        url.streams.filter(mime_type='audio/mp4').first().download(output_path=cls.project_path)
+        url.streams.filter(mime_type='audio/mp4').first().download(output_path=cls.project_path, filename=mp4_file)
         cls.process_audio(title)
         os.remove(mp4_path)
 
@@ -57,9 +59,9 @@ class Processor:
         clip.write_videofile(out_name, audio=audio_name)
 
     @classmethod
-    def process_video(cls, url):
+    def process_video(cls, url, title):
         video = url.streams.filter(mime_type='video/mp4').order_by('resolution').desc().first()
-        video.download(output_path=cls.project_path)
+        video.download(output_path=cls.project_path, filename=title)
 
         mp4_clip = f"{video.title}.mp4"
         mp3_clip = f"{video.title}.mp3"
@@ -91,7 +93,7 @@ class Processor:
 
         # set os path back to normal
         cls.set_path(actual_download_path)
-        cls.process_video(url)
+        cls.process_video(url, f"{title}.mp4")
         os.remove(mp3_path)
 
         user_interface.Interface.message_complete()

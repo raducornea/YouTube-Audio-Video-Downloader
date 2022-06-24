@@ -1,8 +1,10 @@
-import os
 from tkinter import *
 from tkinter import filedialog
+
+import os
 import re
 import processing_functions
+import threading
 
 
 class Interface:
@@ -70,6 +72,7 @@ class Interface:
                                 bg='yellow',
                                 pady=20,
                                 command=cls.download_mp3)
+                                # command=threading.Thread(target=cls.download_mp3).start())
         cls.button_mp4 = Button(cls.window,
                                 text='DOWNLOAD MP4',
                                 font='arial 15 bold',
@@ -121,7 +124,7 @@ class Interface:
             cls.label_link_corrupted.place(x=160, y=195)
             return False
 
-        if not os.path.exists(entry_path):
+        if not os.path.exists(entry_path) or entry_path == "":
             cls.forget_all_messages()
             cls.label_path_corrupted.place(x=160, y=195)
             return False
