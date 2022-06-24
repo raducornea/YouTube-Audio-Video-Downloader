@@ -1,9 +1,11 @@
-from moviepy.editor import *
+from moviepy.audio.io.AudioFileClip import AudioFileClip
+from moviepy.video.io.VideoFileClip import VideoFileClip
 from pytube import YouTube
 from pathlib import Path
 
 import user_interface
 import shutil
+import os
 
 
 class Processor:
