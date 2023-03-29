@@ -1,0 +1,12 @@
+{
+	"background_application_color": "#465376",
+	"background_entry_color": "white",
+	"background_button_download_color": "#10AE10",
+	"background_button_browse_color": "#96D0FF",
+	"background_label_color": "#465376",
+	"text_application_color": "#1b2233",
+	"text_entry_color": "#1b2233",
+	"text_button_download_color": "#1b2233",
+	"text_button_browse_color": "#1b2233",
+	"text_label_color": "#96D0FF"
+}
